@@ -3,13 +3,16 @@ import './App.css';
 import InputShortner from './InputShortner';
 import BackgroundAnimate from './BackgroundAnimate';
 import ShortenedUrl from './ShortenedUrl';
+import { useState } from 'react';
 
 function App() {
+  const [inputValue,setInputValue]=useState("");
+
   return (
     <div className="App">
-      <InputShortner />
+      <InputShortner setInputValue={setInputValue}/>
       <BackgroundAnimate />
-      <ShortenedUrl />
+      <ShortenedUrl inputValue={inputValue} />
     </div>
   );
 }

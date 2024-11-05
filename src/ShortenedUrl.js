@@ -2,17 +2,56 @@ import { useState, useEffect } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
-const ShortenedUrl = () => {
-  const [shortenLink, setShortenLink] = useState("sample");
+const ShortenedUrl = ({ inputValue }) => {
+  console.log(inputValue);
+  const [shortenLink, setShortenLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [laoding, setLoading] = useState(false);
+  const token = process.env.REACT_APP_API_KEY;
+  console.log(token);
   const notify = () => {
     toast.success("Copied!", {
       position: "bottom-center",
       autoClose: 1000,
     });
   };
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      await axios
+        .post(
+          "https://api-ssl.bitly.com/v4/shorten",
+          {
+            long_url: `${inputValue}`, // The long URL you want to shorten
+            domain: "bit.ly", // The domain for the shortened URL
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Insert token here
+              "Content-Type": "application/json",
+            },
+          }
+        )
+        .then((response) => {
+          setShortenLink(response.data.link);
+          console.log("Shortened URL:", response.data.link); // Log the shortened URL
+        })
+        .catch((error) => {
+          console.error(
+            "Error:",
+            error.response ? error.response.data : error.message
+          ); // Log errors
+        });
+    } catch (error) {}
+  };
 
+  useEffect(()=>{
+    if (inputValue.length) {
+      fetchData();
+    }
+  },[inputValue])
   useEffect(() => {
     const timer = setTimeout(() => {
       setCopied(false);
@@ -20,6 +59,7 @@ const ShortenedUrl = () => {
 
     return () => clearTimeout(timer);
   }, [copied]);
+
   return (
     <div className="ResultContainer">
       <p>{shortenLink}</p>
@@ -29,7 +69,11 @@ const ShortenedUrl = () => {
           setCopied(true);
         }}
       >
-        <button onClick={notify} className={copied ? "copied" : ""}>
+        <button
+          disabled={shortenLink === "" ? true : false}
+          onClick={notify}
+          className={copied ? "copied" : ""}
+        >
           Copy
         </button>
       </CopyToClipboard>
